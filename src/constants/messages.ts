@@ -15,6 +15,9 @@ export const MESSAGES = {
       PROPERTY_EXISTS: "Property already exists.",
       PROPERTY_NOT_EXIST: "The property cannot be found."
     },
+    NEWS_ERRORS: {
+      NEWS_NOT_EXIST: "The news cannot be found."
+    },
     NOTIFICATION_ERRORS: {
       NOTIFICATION_EXISTS: "Notification already exists.",
       NOTIFICATION_NOT_EXIST: "The Notification cannot be found."
@@ -22,6 +25,11 @@ export const MESSAGES = {
     CONTACT_ERRORS: {
       CONTACT_EXISTS: "Contact already exists.",
       CONTACT_NOT_EXIST: "The contact cannot be found."
+    },
+    SITE_ERRORS: {
+      SITE_NOT_EXIST: "The site cannot be found.",
+      TEAM_MEMBER_EXIST:"Team member already exist",
+      TEAM_MEMBER_NOT_EXIST:"Team member not exist"
     },
     INQUIRY_ERRORS: {
       INQUIRY_EXISTS: "Inquiry already exists.",

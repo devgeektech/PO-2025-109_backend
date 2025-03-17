@@ -6,12 +6,12 @@ import multer from "multer";
 import path from "path";
 import { Server } from "socket.io";
 import 'dotenv/config';
-import { createAdmin } from "./services/auth/controller";
 import { applyMiddleware, applyRoutes } from "./utils";
 import middleware from "./middleware";
 import routes from "./services";
 import errorHandlers from "./middleware/errorHandlers";
 import socketHandler from "./socket/socket";
+import { defaultCreateMiddlewares } from "./middleware/defaultCreate";
 
 const router = express();
 
@@ -39,7 +39,7 @@ const upload = multer({
 router.use(upload.any());
 
 applyMiddleware(middleware, router);
-createAdmin()
+defaultCreateMiddlewares()
 applyRoutes(routes, router);
 applyMiddleware(errorHandlers, router);
 

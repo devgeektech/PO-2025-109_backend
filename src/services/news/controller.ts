@@ -2,21 +2,26 @@ import { NextFunction, Request, Response } from "express";
 import { HTTP400Error } from "../../utils/http-errors";
 import { ResponseUtilities } from "../../utils/response.util";
 import { MESSAGES } from "../../constants/messages";
-import Contact from "../../models/Contact";
+import News from "../../models/News";
 
-export const createContact = async (
-  req: Request,
+export const createNews = async (
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const payload = req.body;
-    const contact = new Contact(payload);
-    await contact.save();
+    const news = new News(payload);
+    console.log(req.files)
+    if(req.files && req.files.length) {
+      let filesData:any = req.files[0]?.filename;
+      news.image=filesData;
+    }
+    await news.save();
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
-      data: contact,
+      data: news,
     });
   } catch (error) {
     console.log(error)
@@ -24,20 +29,20 @@ export const createContact = async (
   }
 };
 
-export const getContactById = async (
+export const getNewsById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const propertyId = req.params.id;
-    const property = await Contact.findById(propertyId).exec();
+    const newsId = req.params.id;
+    const property = await News.findById(newsId).exec();
 
     if (!property) {
       throw new HTTP400Error(
         ResponseUtilities.sendResponsData({
           code: 400,
-          message: MESSAGES.CONTACT_ERRORS.CONTACT_NOT_EXIST,
+          message: MESSAGES.NEWS_ERRORS.NEWS_NOT_EXIST,
         })
       );
     }
@@ -52,20 +57,59 @@ export const getContactById = async (
   }
 };
 
-export const getAllContacts = async (req: Request, next: NextFunction) => {
+
+export const getNewsInsights = async ( next: NextFunction ) => {
+  try {
+    const newsInsights = await News.aggregate([
+      {
+        $match: { isDeleted: false }
+      },
+      {
+        $group: {
+          _id: null,
+          totalNews: { $sum: 1 }, // Counts the number of documents
+          totalViews: { $sum: { $size: "$views" } } // Sums the length of the views array
+        }
+      }
+    ]);
+
+    const response = newsInsights.length > 0 
+      ? { news: newsInsights[0].totalNews, views: newsInsights[0].totalViews }
+      : { news: 0, views: 0 };
+
+    return ResponseUtilities.sendResponsData({
+      code: 200,
+      message: "Success",
+      data: response,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const getAllNews = async (req: Request, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const searchTerm = (req.query.search as string) || "";
+    const category = (req.query.category as string) || "";
 
     // Initialize the searchQuery object
     let searchQuery: any = {
+      isDeleted: false,
       $or: [],
     };
 
     // Add search term filter if provided
     if (searchTerm) {
-      searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
+      searchQuery.$or.push({ title: { $regex: searchTerm, $options: 'i' } });
+    }
+
+    // Add propertyType filter if provided
+    if (category) {
+      searchQuery.category = category;
     }
 
     // If no search term or other filters exist, remove $or from searchQuery
@@ -77,18 +121,18 @@ export const getAllContacts = async (req: Request, next: NextFunction) => {
     const skip = (page - 1) * limit;
 
     // Fetch properties based on the searchQuery
-    const properties = await Contact.find(searchQuery).sort({createdAt: -1})
+    const newsList = await News.find(searchQuery).sort({createdAt: -1})
       .skip(skip)
       .limit(limit);
 
     // Get total record count for pagination
-    const totalRecords = await Contact.countDocuments(searchQuery);
+    const totalRecords = await News.countDocuments(searchQuery);
 
     // Return response with pagination data
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
-      data: properties,
+      data: newsList,
       total: totalRecords,
     });
   } catch (error) {
@@ -97,11 +141,11 @@ export const getAllContacts = async (req: Request, next: NextFunction) => {
 };
 
 
-export const updateContact = async (req: Request, next: NextFunction) => {
+export const updateNews = async (req: Request, next: NextFunction) => {
   try {
     const propertyId = req.params.id;
     const payload = req.body;
-    const updatedProperty = await Contact.findByIdAndUpdate(
+    const updatedProperty = await News.findByIdAndUpdate(
       propertyId,
       payload,
       { new: true } // Return the updated document
@@ -111,7 +155,7 @@ export const updateContact = async (req: Request, next: NextFunction) => {
       throw new HTTP400Error(
         ResponseUtilities.sendResponsData({
           code: 400,
-          message: MESSAGES.CONTACT_ERRORS.CONTACT_NOT_EXIST,
+          message: MESSAGES.NEWS_ERRORS.NEWS_NOT_EXIST,
         })
       );
     }
@@ -126,16 +170,19 @@ export const updateContact = async (req: Request, next: NextFunction) => {
   }
 };
 
-export const deleteContact = async (req: Request, next: NextFunction) => {
+export const deleteNews = async (req: Request, next: NextFunction) => {
   try {
     const propertyId = req.params.id;
-    const result = await Contact.findByIdAndDelete(propertyId).exec();
+    const result = await News.findOneAndUpdate(
+      { _id: propertyId },
+      { isDeleted: true }
+    ).exec();
 
     if (!result) {
       throw new HTTP400Error(
         ResponseUtilities.sendResponsData({
           code: 400,
-          message: MESSAGES.CONTACT_ERRORS.CONTACT_NOT_EXIST,
+          message: MESSAGES.NEWS_ERRORS.NEWS_NOT_EXIST,
         })
       );
     }
@@ -145,3 +192,4 @@ export const deleteContact = async (req: Request, next: NextFunction) => {
     next(error);
   }
 };
+
