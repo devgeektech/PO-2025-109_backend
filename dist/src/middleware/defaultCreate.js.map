@@ -1,0 +1,1 @@
+{"version":3,"file":"defaultCreate.js","sourceRoot":"","sources":["../../../src/middleware/defaultCreate.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,4DAAyD;AACzD,4DAAwD;AAEjD,MAAM,wBAAwB,GAAC,GAAQ,EAAE;IAC5C,IAAI,CAAC;QACD,MAAM,IAAA,wBAAW,GAAE,CAAC;QACpB,MAAM,IAAA,sBAAS,GAAE,CAAC;IACtB,CAAC;IAAC,OAAO,KAAK,EAAE,CAAC,CAAA,CAAC;AACtB,CAAC,CAAA,CAAA;AALY,QAAA,wBAAwB,4BAKpC"}

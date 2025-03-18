@@ -5,6 +5,7 @@
   "scripts": {
     "postinstall": "npx tsc",
     "dev": "tsc-watch --onSuccess \"node --max-old-space-size=4096 ./dist/src/server.js\"",
+    "start":"node ./dist/src/server.js",
     "test": "npm run"
   },
   "author": "",
