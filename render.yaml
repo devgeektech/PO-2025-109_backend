@@ -3,8 +3,8 @@ services:
     type: web
     env: node
     plan: free  # You can use 'starter' or 'pro' for better performance
-    buildCommand: "npm install && npm run dev"  # Adjust as needed
-    startCommand: "node dist/src/server.js"  # Change to your entry point (e.g., index.js, app.js)
+    buildCommand: "npm install"  # Adjust as needed
+    startCommand: "npm run dev"  # Change to your entry point (e.g., index.js, app.js)
     envVars:
       - key: NODE_ENV
         value: development
