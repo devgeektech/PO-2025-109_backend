@@ -1,0 +1,13 @@
+services:
+  - name: my-node-app  # Change this to your app's name
+    type: web
+    env: node
+    plan: free  # You can use 'starter' or 'pro' for better performance
+    buildCommand: "npm install && npm run dev"  # Adjust as needed
+    startCommand: "node dist/src/server.js"  # Change to your entry point (e.g., index.js, app.js)
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 9000  # Render automatically assigns a port, so use process.env.PORT
+    autoDeploy: true
