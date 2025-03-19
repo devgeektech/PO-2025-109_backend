@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const constants_1 = require("../constants");
 const propertySchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -42,7 +43,7 @@ const propertySchema = new mongoose_1.Schema({
     },
     buildingStatus: {
         type: String,
-        enum: ['existing', 'completed'],
+        enum: constants_1.BUILDING_STATUS,
         required: true
     },
     buildings: {
@@ -89,12 +90,12 @@ const propertySchema = new mongoose_1.Schema({
     elevators: {
         type: Number
     },
+    parking: {
+        type: Number
+    },
     elevatorWalkUp: {
         type: Boolean,
         default: false
-    },
-    parking: {
-        type: String
     },
     landArea: {
         type: Number,
@@ -113,6 +114,80 @@ const propertySchema = new mongoose_1.Schema({
     images: [{
             type: String,
         }],
+    permittedZoning: {
+        type: String
+    },
+    brokerCoOp: {
+        type: Boolean
+    },
+    askingPrice: {
+        type: Number,
+    },
+    propertyType: {
+        type: String,
+        required: true
+    },
+    subType: {
+        type: String
+    },
+    investmentType: {
+        type: String,
+        required: true
+    },
+    investmentSubType: {
+        type: String
+    },
+    squareFootage: {
+        type: Number
+    },
+    pricePerSquareFoot: {
+        type: Number
+    },
+    capRate: {
+        type: Number,
+        min: 0,
+        max: 100
+    },
+    proformaCapRate: {
+        type: Number,
+        min: 0,
+        max: 100
+    },
+    noi: {
+        type: Number,
+    },
+    proformaNOI: {
+        type: Number,
+    },
+    keys: {
+        type: Number,
+        min: 0
+    },
+    stories: {
+        type: Number
+    },
+    lotSizeAcres: {
+        type: Number
+    },
+    parkingPerKey: {
+        type: Number
+    },
+    apn: {
+        type: String
+    },
+    pricePerKey: {
+        type: Number
+    },
+    groundLease: {
+        type: Boolean,
+        default: false
+    },
+    ownership: {
+        type: String
+    },
+    saleCondition: {
+        type: String
+    },
     isDeleted: {
         type: Boolean,
         default: false

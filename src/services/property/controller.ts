@@ -65,11 +65,12 @@ export const getAllProperties = async (req: Request, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const searchTerm = (req.query.search as string) || "";
-    const propertyType = (req.query.propertyType as string) || "";
-    const bedrooms = parseInt(req.query.bedrooms as string) || 0;
-    const bathrooms = parseInt(req.query.bathrooms as string) || 0;
-    const startPrice = parseInt(req.query.startPrice as string) || 0;
-    const endPrice = parseInt(req.query.endPrice as string) || 0;
+    const buildingStatus = (req.query.buildingStatus as string) || "";
+    const buildings = parseInt(req.query.buildings as string) || 0;
+    const units = parseInt(req.query.units as string) || 0;
+    const floors = parseInt(req.query.floors as string) || 0;
+    const startLandArea = parseInt(req.query.startLandArea as string) || 0;
+    const endLandArea = parseInt(req.query.endLandArea as string) || 0;
 
     // Initialize the searchQuery object
     let searchQuery: any = {
@@ -83,28 +84,31 @@ export const getAllProperties = async (req: Request, next: NextFunction) => {
     }
 
     // Add propertyType filter if provided
-    if (propertyType) {
-      searchQuery.propertyType = propertyType;
+    if (buildingStatus) {
+      searchQuery.buildingStatus = buildingStatus;
     }
 
     // Add bedrooms filter if provided
-    if (bedrooms > 0) {
-      searchQuery.bedrooms = bedrooms;
+    if (buildings > 0) {
+      searchQuery.buildings = buildings;
     }
 
     // Add bathrooms filter if provided
-    if (bathrooms > 0) {
-      searchQuery.bathrooms = bathrooms;
+    if (units > 0) {
+      searchQuery.units = units;
     }
 
-    // Add price range filter if provided
-    if (startPrice > 0 || endPrice > 0) {
-      searchQuery.price = {};
-      if (startPrice > 0) {
-        searchQuery.price.$gte = startPrice; // Greater than or equal to startPrice
+    if (floors > 0) {
+      searchQuery.floors = floors;
+    }
+    // Add area range filter if provided
+    if (startLandArea > 0 || endLandArea > 0) {
+      searchQuery.landArea = {};
+      if (startLandArea > 0) {
+        searchQuery.landArea.$gte = startLandArea; 
       }
-      if (endPrice > 0) {
-        searchQuery.price.$lte = endPrice; // Less than or equal to endPrice
+      if (endLandArea > 0) {
+        searchQuery.landArea.$lte = endLandArea;
       }
     }
 

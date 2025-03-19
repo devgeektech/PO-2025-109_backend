@@ -37,7 +37,6 @@ export default [
     path: currentPathURL+":id",
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getPropertyById(req,res,next);
         res.status(200).send(result);

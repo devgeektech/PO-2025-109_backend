@@ -11,4 +11,8 @@ export const ADMIN_USERS=[
         authProvider: "email",
         otpVerified: true
     }
+];
+
+export const BUILDING_STATUS=[
+    'existing','completed'
 ]

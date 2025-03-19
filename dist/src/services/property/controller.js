@@ -69,11 +69,12 @@ const getAllProperties = (req, next) => __awaiter(void 0, void 0, void 0, functi
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const searchTerm = req.query.search || "";
-        const propertyType = req.query.propertyType || "";
-        const bedrooms = parseInt(req.query.bedrooms) || 0;
-        const bathrooms = parseInt(req.query.bathrooms) || 0;
-        const startPrice = parseInt(req.query.startPrice) || 0;
-        const endPrice = parseInt(req.query.endPrice) || 0;
+        const buildingStatus = req.query.buildingStatus || "";
+        const buildings = parseInt(req.query.buildings) || 0;
+        const units = parseInt(req.query.units) || 0;
+        const floors = parseInt(req.query.floors) || 0;
+        const startLandArea = parseInt(req.query.startLandArea) || 0;
+        const endLandArea = parseInt(req.query.endLandArea) || 0;
         // Initialize the searchQuery object
         let searchQuery = {
             isDeleted: false,
@@ -84,25 +85,28 @@ const getAllProperties = (req, next) => __awaiter(void 0, void 0, void 0, functi
             searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
         }
         // Add propertyType filter if provided
-        if (propertyType) {
-            searchQuery.propertyType = propertyType;
+        if (buildingStatus) {
+            searchQuery.buildingStatus = buildingStatus;
         }
         // Add bedrooms filter if provided
-        if (bedrooms > 0) {
-            searchQuery.bedrooms = bedrooms;
+        if (buildings > 0) {
+            searchQuery.buildings = buildings;
         }
         // Add bathrooms filter if provided
-        if (bathrooms > 0) {
-            searchQuery.bathrooms = bathrooms;
+        if (units > 0) {
+            searchQuery.units = units;
         }
-        // Add price range filter if provided
-        if (startPrice > 0 || endPrice > 0) {
-            searchQuery.price = {};
-            if (startPrice > 0) {
-                searchQuery.price.$gte = startPrice; // Greater than or equal to startPrice
+        if (floors > 0) {
+            searchQuery.floors = floors;
+        }
+        // Add area range filter if provided
+        if (startLandArea > 0 || endLandArea > 0) {
+            searchQuery.landArea = {};
+            if (startLandArea > 0) {
+                searchQuery.landArea.$gte = startLandArea;
             }
-            if (endPrice > 0) {
-                searchQuery.price.$lte = endPrice; // Less than or equal to endPrice
+            if (endLandArea > 0) {
+                searchQuery.landArea.$lte = endLandArea;
             }
         }
         // If no search term or other filters exist, remove $or from searchQuery

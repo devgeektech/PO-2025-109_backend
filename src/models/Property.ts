@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { IProperty } from "../core/interface/property";
+import { BUILDING_STATUS } from "../constants";
 
 const propertySchema = new Schema<IProperty>(
   {
@@ -10,7 +11,7 @@ const propertySchema = new Schema<IProperty>(
     },
     buildingStatus:{
       type: String,
-      enum:['existing','completed'],
+      enum: BUILDING_STATUS,
       required: true
     },
     buildings:{
@@ -57,12 +58,12 @@ const propertySchema = new Schema<IProperty>(
     elevators:{
       type: Number
     },
+    parking:{
+      type: Number
+    },
     elevatorWalkUp:{
       type: Boolean,
       default: false
-    },
-    parking:{
-      type: String
     },
     landArea:{
       type: Number,
@@ -81,6 +82,80 @@ const propertySchema = new Schema<IProperty>(
     images:[{
       type: String,
     }],
+    permittedZoning:{
+      type: String
+    },
+    brokerCoOp:{
+      type: Boolean
+    },
+    askingPrice:{
+      type: Number,
+    },
+    propertyType:{
+      type: String,
+      required: true
+    },
+    subType:{
+      type: String
+    },
+    investmentType:{
+      type: String,
+      required: true
+    },
+    investmentSubType:{
+      type: String
+    },
+    squareFootage:{
+      type: Number
+    },
+    pricePerSquareFoot:{
+      type: Number
+    },
+    capRate:{
+      type: Number,
+      min: 0,
+      max: 100
+    },
+    proformaCapRate:{
+      type: Number,
+      min: 0,
+      max: 100
+    },
+    noi:{
+      type: Number,
+    },
+    proformaNOI:{
+      type: Number,
+    },
+    keys:{
+      type: Number,
+      min: 0
+    },
+    stories:{
+      type: Number
+    },
+    lotSizeAcres:{
+       type: Number
+    },
+    parkingPerKey:{
+      type: Number
+    },
+    apn:{
+      type: String
+    },
+    pricePerKey:{
+      type: Number
+    },
+    groundLease:{
+      type: Boolean,
+      default: false
+    },
+    ownership:{
+      type: String
+    },
+    saleCondition:{
+      type: String
+    },
     isDeleted:{
       type: Boolean,
       default: false

@@ -7,7 +7,7 @@ exports.handleCompression = exports.handleBodyRequestParsing = exports.handleCor
 const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const compression_1 = __importDefault(require("compression"));
-const handleCors = (router) => router.use((0, cors_1.default)({ credentials: true, origin: true }));
+const handleCors = (router) => router.use((0, cors_1.default)({ origin: '*' }));
 exports.handleCors = handleCors;
 const handleBodyRequestParsing = (router) => {
     router.use(body_parser_1.default.urlencoded({ extended: true }));
