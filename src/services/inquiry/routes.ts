@@ -16,7 +16,7 @@ export default [
     handler: [
       validateInquiry,
       async (req: Request, res: Response, next: NextFunction) => {
-        const result = await createInquiry(req,res,next);
+        const result = await createInquiry(req,next);
         res.status(200).send(result);
       },
     ]
@@ -38,7 +38,7 @@ export default [
     handler: [
       checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
-        const result = await getInquiryById(req,res,next);
+        const result = await getInquiryById(req,next);
         res.status(200).send(result);
       },
     ],

@@ -1,4 +1,4 @@
-import mongoose, { Schema , Types} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { INews } from "../core/interface/news";
 
 const newsSchema = new Schema<INews>(
@@ -23,10 +23,10 @@ const newsSchema = new Schema<INews>(
     image:{
       type: String,
     },
-    views:[{
-      type: Types.ObjectId,
-      ref: 'Users'
-    }],
+    views:{
+      type: Number,
+      default:0
+    },
     isDeleted:{
       type: Boolean,
       default: false

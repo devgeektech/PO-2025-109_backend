@@ -26,7 +26,7 @@ exports.default = [
         handler: [
             check_1.validateInquiry,
             (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-                const result = yield (0, controller_1.createInquiry)(req, res, next);
+                const result = yield (0, controller_1.createInquiry)(req, next);
                 res.status(200).send(result);
             }),
         ]
@@ -48,7 +48,7 @@ exports.default = [
         handler: [
             common_middleware_1.checkAuthenticate,
             (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-                const result = yield (0, controller_1.getInquiryById)(req, res, next);
+                const result = yield (0, controller_1.getInquiryById)(req, next);
                 res.status(200).send(result);
             }),
         ],

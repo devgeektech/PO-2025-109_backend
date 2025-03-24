@@ -6,7 +6,6 @@ import Inquiry from "../../models/Inquiry";
 
 export const createInquiry = async (
   req: Request,
-  res: Response,
   next: NextFunction
 ) => {
   try {
@@ -19,14 +18,12 @@ export const createInquiry = async (
       data: inquiry,
     });
   } catch (error) {
-    console.log(error)
     next(error);
   }
 };
 
 export const getInquiryById = async (
   req: Request,
-  res: Response,
   next: NextFunction
 ) => {
   try {
@@ -77,7 +74,7 @@ export const getAllInquiries = async (req: Request, next: NextFunction) => {
     const skip = (page - 1) * limit;
 
     // Fetch properties based on the searchQuery
-    const properties = await Inquiry.find(searchQuery).sort({createdAt: -1})
+    const properties = await Inquiry.find(searchQuery).populate("property","name").sort({createdAt: -1})
       .skip(skip)
       .limit(limit);
 

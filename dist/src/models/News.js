@@ -55,10 +55,10 @@ const newsSchema = new mongoose_1.Schema({
     image: {
         type: String,
     },
-    views: [{
-            type: mongoose_1.Types.ObjectId,
-            ref: 'Users'
-        }],
+    views: {
+        type: Number,
+        default: 0
+    },
     isDeleted: {
         type: Boolean,
         default: false

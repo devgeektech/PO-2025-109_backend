@@ -17,7 +17,7 @@ const http_errors_1 = require("../../utils/http-errors");
 const response_util_1 = require("../../utils/response.util");
 const messages_1 = require("../../constants/messages");
 const Inquiry_1 = __importDefault(require("../../models/Inquiry"));
-const createInquiry = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const createInquiry = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const payload = req.body;
         const inquiry = new Inquiry_1.default(payload);
@@ -29,12 +29,11 @@ const createInquiry = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         });
     }
     catch (error) {
-        console.log(error);
         next(error);
     }
 });
 exports.createInquiry = createInquiry;
-const getInquiryById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getInquiryById = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const propertyId = req.params.id;
         const property = yield Inquiry_1.default.findById(propertyId).exec();
@@ -76,7 +75,7 @@ const getAllInquiries = (req, next) => __awaiter(void 0, void 0, void 0, functio
         // Pagination settings
         const skip = (page - 1) * limit;
         // Fetch properties based on the searchQuery
-        const properties = yield Inquiry_1.default.find(searchQuery).sort({ createdAt: -1 })
+        const properties = yield Inquiry_1.default.find(searchQuery).populate("property", "name").sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
         // Get total record count for pagination

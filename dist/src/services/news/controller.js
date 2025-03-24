@@ -40,11 +40,11 @@ const createNews = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.createNews = createNews;
-const getNewsById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getNewsById = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const newsId = req.params.id;
-        const property = yield News_1.default.findById(newsId).exec();
-        if (!property) {
+        const news = yield News_1.default.findByIdAndUpdate(newsId, { $inc: { views: 1 } }, { new: true });
+        if (!news) {
             throw new http_errors_1.HTTP400Error(response_util_1.ResponseUtilities.sendResponsData({
                 code: 400,
                 message: messages_1.MESSAGES.NEWS_ERRORS.NEWS_NOT_EXIST,
@@ -53,7 +53,7 @@ const getNewsById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         return response_util_1.ResponseUtilities.sendResponsData({
             code: 200,
             message: "Success",
-            data: property,
+            data: news,
         });
     }
     catch (error) {
@@ -71,7 +71,7 @@ const getNewsInsights = (next) => __awaiter(void 0, void 0, void 0, function* ()
                 $group: {
                     _id: null,
                     totalNews: { $sum: 1 }, // Counts the number of documents
-                    totalViews: { $sum: { $size: "$views" } } // Sums the length of the views array
+                    totalViews: { $sum: "$views" } // Sums the length of the views array
                 }
             }
         ]);

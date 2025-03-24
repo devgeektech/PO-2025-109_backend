@@ -49,6 +49,11 @@ const inquirySchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
+    property: {
+        type: mongoose_1.Types.ObjectId,
+        ref: "Property",
+        required: true
+    },
     query: {
         type: String,
         required: true, // Query field added, required

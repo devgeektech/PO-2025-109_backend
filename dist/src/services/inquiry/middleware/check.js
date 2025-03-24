@@ -13,6 +13,7 @@ const validateInquiry = (req, res, next) => {
         name: joi_1.default.string().trim().required(),
         email: joi_1.default.string().email().trim().required(),
         phone: joi_1.default.string().trim().required(),
+        property: joi_1.default.string().required(),
         query: joi_1.default.string().trim().required(),
     });
     const { error, value } = schema.validate(req.body, {

@@ -37,7 +37,6 @@ const upload = multer({
 
 
 router.use(upload.any());
-
 applyMiddleware(middleware, router);
 defaultCreateMiddlewares()
 applyRoutes(routes, router);

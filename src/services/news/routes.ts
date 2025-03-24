@@ -50,7 +50,7 @@ export default [
     handler: [
       checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
-        const result = await getNewsById(req,res,next);
+        const result = await getNewsById(req,next);
         res.status(200).send(result);
       },
     ],

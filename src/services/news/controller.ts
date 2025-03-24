@@ -31,14 +31,17 @@ export const createNews = async (
 
 export const getNewsById = async (
   req: Request,
-  res: Response,
   next: NextFunction
 ) => {
   try {
     const newsId = req.params.id;
-    const property = await News.findById(newsId).exec();
+    const news = await News.findByIdAndUpdate(
+      newsId,
+      { $inc: { views: 1 } },
+      { new: true } 
+    );
 
-    if (!property) {
+    if (!news) {
       throw new HTTP400Error(
         ResponseUtilities.sendResponsData({
           code: 400,
@@ -50,7 +53,7 @@ export const getNewsById = async (
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
-      data: property,
+      data: news,
     });
   } catch (error) {
     next(error);
@@ -68,7 +71,7 @@ export const getNewsInsights = async ( next: NextFunction ) => {
         $group: {
           _id: null,
           totalNews: { $sum: 1 }, // Counts the number of documents
-          totalViews: { $sum: { $size: "$views" } } // Sums the length of the views array
+          totalViews: { $sum:  "$views" } // Sums the length of the views array
         }
       }
     ]);

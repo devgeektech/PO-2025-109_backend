@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema , Types} from 'mongoose';
 import { IInquiry } from '../core/interface/inquiry';
 
 // Define the Inquiry schema
@@ -17,6 +17,11 @@ const inquirySchema: Schema = new Schema(
     phone:{
       type: String,
       required: true,
+    },
+    property:{
+      type: Types.ObjectId,
+      ref: "Property",
+      required: true
     },
     query: {
       type: String,

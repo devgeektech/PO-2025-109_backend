@@ -7,7 +7,7 @@ export interface INews extends Document  {
     link: string;
     image?: string;
     description:string;
-    views: string[];
+    views: number;
     isDeleted?: boolean;
     createdAt?: Date;
     updatedAt?: Date;

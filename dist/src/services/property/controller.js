@@ -23,7 +23,6 @@ const createProperty = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         console.log(req.body);
         const payload = req.body;
         const property = new Property_1.default(payload);
-        console.log(req.files);
         if (req.files && req.files.length) {
             let filesData = req.files;
             filesData = filesData.map((file) => file.filename);
@@ -143,7 +142,12 @@ exports.getAllProperties = getAllProperties;
 const updateProperty = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const propertyId = req.params.id;
-        const payload = req.body;
+        let payload = req.body;
+        if (req.files && req.files.length) {
+            let filesData = req.files;
+            filesData = filesData.map((file) => file.filename);
+            payload.images = filesData;
+        }
         const updatedProperty = yield Property_1.default.findByIdAndUpdate(propertyId, payload, { new: true } // Return the updated document
         ).exec();
         if (!updatedProperty) {

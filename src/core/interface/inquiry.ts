@@ -5,5 +5,6 @@ export interface IInquiry extends Document {
     name: string;             
     email: string;  
     phone: string;
+    property: mongoose.Types.ObjectId;
     query: string;          
   }

@@ -59,7 +59,7 @@ exports.default = [
         handler: [
             common_middleware_1.checkAuthenticate,
             (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-                const result = yield (0, controller_1.getNewsById)(req, res, next);
+                const result = yield (0, controller_1.getNewsById)(req, next);
                 res.status(200).send(result);
             }),
         ],

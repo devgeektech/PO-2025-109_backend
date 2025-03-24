@@ -14,7 +14,7 @@ export const createProperty = async (
     console.log(req.body)
     const payload = req.body;
     const property = new Property(payload);
-    console.log(req.files)
+
     if(req.files && req.files.length) {
       let filesData:any = req.files;
       filesData= filesData.map((file:any) =>file.filename);
@@ -150,7 +150,15 @@ export const getAllProperties = async (req: Request, next: NextFunction) => {
 export const updateProperty = async (req: Request, next: NextFunction) => {
   try {
     const propertyId = req.params.id;
-    const payload = req.body;
+    let payload = req.body;
+
+
+    if(req.files && req.files.length) {
+      let filesData:any = req.files;
+      filesData= filesData.map((file:any) =>file.filename);
+      payload.images=filesData;
+    }
+    
     const updatedProperty = await Property.findByIdAndUpdate(
       propertyId,
       payload,
