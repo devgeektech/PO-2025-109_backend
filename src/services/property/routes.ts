@@ -4,7 +4,7 @@ import {
   validateProperty
 } from "./middleware/check";
 import { checkAuthenticate } from "../../middleware/common.middleware";
-import { createProperty, deleteProperty, deletePropertyImage, getAllProperties, getPropertyById, updateProperty } from "./controller";
+import { createProperty, deleteProperty, deletePropertyImage, getAllProperties, getPropertyById, getRelatedProperties, updateProperty } from "./controller";
 const basePath = config.BASE_PATH;
 const chatPath= "property/";
 const currentPathURL = basePath + chatPath;
@@ -29,6 +29,17 @@ export default [
       checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getAllProperties(req,next);
+        res.status(200).send(result);
+      },
+    ],
+  },
+  {
+    path: currentPathURL+ "related",
+    method: "get",
+    handler: [
+      checkAuthenticate,
+      async (req: Request, res: Response, next: NextFunction) => {
+        const result = await getRelatedProperties(req,next);
         res.status(200).send(result);
       },
     ],

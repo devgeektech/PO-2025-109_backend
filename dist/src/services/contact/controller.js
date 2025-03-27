@@ -61,27 +61,26 @@ const getAllContacts = (req, next) => __awaiter(void 0, void 0, void 0, function
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const searchTerm = req.query.search || "";
-        // Initialize the searchQuery object
-        let searchQuery = {
-            $or: [],
-        };
-        // Add search term filter if provided
-        if (searchTerm) {
-            searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
-        }
-        // If no search term or other filters exist, remove $or from searchQuery
-        if (!((_a = searchQuery.$or) === null || _a === void 0 ? void 0 : _a.length)) {
-            delete searchQuery.$or;
-        }
-        // Pagination settings
         const skip = (page - 1) * limit;
-        // Fetch properties based on the searchQuery
-        const properties = yield Contact_1.default.find(searchQuery).sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-        // Get total record count for pagination
-        const totalRecords = yield Contact_1.default.countDocuments(searchQuery);
-        // Return response with pagination data
+        // Construct search filter
+        const searchQuery = searchTerm
+            ? { name: { $regex: searchTerm, $options: "i" } }
+            : {};
+        // Aggregate pipeline to get paginated results and total count
+        const result = yield Contact_1.default.aggregate([
+            { $match: searchQuery },
+            { $sort: { createdAt: -1 } },
+            {
+                $facet: {
+                    data: [{ $skip: skip }, { $limit: limit }], // Paginated data
+                    totalCount: [{ $count: "count" }], // Total count
+                },
+            },
+        ]);
+        // Extract data and total count
+        const properties = result[0].data;
+        const totalRecords = ((_a = result[0].totalCount[0]) === null || _a === void 0 ? void 0 : _a.count) || 0;
+        // Return response
         return response_util_1.ResponseUtilities.sendResponsData({
             code: 200,
             message: "Success",

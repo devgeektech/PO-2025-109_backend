@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePropertyImage = exports.deleteProperty = exports.updateProperty = exports.getAllProperties = exports.getPropertyById = exports.createProperty = void 0;
+exports.deletePropertyImage = exports.deleteProperty = exports.updateProperty = exports.getRelatedProperties = exports.getAllProperties = exports.getPropertyById = exports.createProperty = void 0;
 const http_errors_1 = require("../../utils/http-errors");
 const response_util_1 = require("../../utils/response.util");
 const messages_1 = require("../../constants/messages");
@@ -68,37 +68,30 @@ const getAllProperties = (req, next) => __awaiter(void 0, void 0, void 0, functi
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const searchTerm = req.query.search || "";
-        const buildingStatus = req.query.buildingStatus || "";
+        const propertyType = req.query.propertyType || "";
         const buildings = parseInt(req.query.buildings) || 0;
-        const units = parseInt(req.query.units) || 0;
         const floors = parseInt(req.query.floors) || 0;
+        const metering = req.query.metering || "";
         const startLandArea = parseInt(req.query.startLandArea) || 0;
         const endLandArea = parseInt(req.query.endLandArea) || 0;
-        // Initialize the searchQuery object
-        let searchQuery = {
-            isDeleted: false,
-            $or: [],
-        };
-        // Add search term filter if provided
+        const skip = (page - 1) * limit;
+        // Construct the search filter
+        const searchQuery = { isDeleted: false };
         if (searchTerm) {
-            searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
+            searchQuery.name = { $regex: searchTerm, $options: "i" };
         }
-        // Add propertyType filter if provided
-        if (buildingStatus) {
-            searchQuery.buildingStatus = buildingStatus;
+        if (propertyType) {
+            searchQuery.propertyType = propertyType;
         }
-        // Add bedrooms filter if provided
         if (buildings > 0) {
-            searchQuery.buildings = buildings;
+            searchQuery.buildings = { $gte: buildings };
         }
-        // Add bathrooms filter if provided
-        if (units > 0) {
-            searchQuery.units = units;
+        if (metering) {
+            searchQuery.metering = metering;
         }
         if (floors > 0) {
-            searchQuery.floors = floors;
+            searchQuery.floors = { $gte: floors };
         }
-        // Add area range filter if provided
         if (startLandArea > 0 || endLandArea > 0) {
             searchQuery.landArea = {};
             if (startLandArea > 0) {
@@ -108,30 +101,26 @@ const getAllProperties = (req, next) => __awaiter(void 0, void 0, void 0, functi
                 searchQuery.landArea.$lte = endLandArea;
             }
         }
-        // If no search term or other filters exist, remove $or from searchQuery
-        if (!((_a = searchQuery.$or) === null || _a === void 0 ? void 0 : _a.length)) {
-            delete searchQuery.$or;
-        }
-        // Pagination settings
-        const skip = (page - 1) * limit;
-        // Fetch properties based on the searchQuery
-        const properties = yield Property_1.default.find(searchQuery).sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-        // Get total record count for pagination
-        const totalRecords = yield Property_1.default.countDocuments(searchQuery);
-        const totalPages = Math.ceil(totalRecords / limit);
-        // Return response with pagination data
+        // Aggregation pipeline
+        const result = yield Property_1.default.aggregate([
+            { $match: searchQuery },
+            { $sort: { createdAt: -1 } },
+            {
+                $facet: {
+                    data: [{ $skip: skip }, { $limit: limit }], // Paginated properties
+                    totalCount: [{ $count: "count" }], // Total count
+                },
+            },
+        ]);
+        // Extract paginated data and total count
+        const properties = result[0].data;
+        const totalRecords = ((_a = result[0].totalCount[0]) === null || _a === void 0 ? void 0 : _a.count) || 0;
+        // Return response
         return response_util_1.ResponseUtilities.sendResponsData({
             code: 200,
             message: "Success",
             data: properties,
-            pagination: {
-                totalPages,
-                currentPage: page,
-                limit,
-                totalRecords,
-            },
+            total: totalRecords
         });
     }
     catch (error) {
@@ -139,6 +128,49 @@ const getAllProperties = (req, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getAllProperties = getAllProperties;
+const getRelatedProperties = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const limit = parseInt(req.query.limit) || 6;
+        const propertyId = req.query.current;
+        // Fetch the current property
+        const currentProperty = yield Property_1.default.findById(propertyId);
+        if (!currentProperty) {
+            return response_util_1.ResponseUtilities.sendResponsData({
+                code: 404,
+                message: "Property not found",
+                data: [],
+            });
+        }
+        // Construct search filter for related properties
+        const searchQuery = {
+            _id: { $ne: propertyId }, // Exclude the current property
+            isDeleted: false, // Only fetch active properties
+            propertyType: currentProperty.propertyType, // Match property type
+        };
+        // Optionally match by subType if it exists
+        if (currentProperty.subType) {
+            searchQuery.subType = currentProperty.subType;
+        }
+        // Optionally match by investment type
+        if (currentProperty.investmentType) {
+            searchQuery.investmentType = currentProperty.investmentType;
+        }
+        // Fetch related properties
+        const relatedProperties = yield Property_1.default.find(searchQuery)
+            .sort({ createdAt: -1 }) // Get the latest properties
+            .limit(limit);
+        // Return response
+        return response_util_1.ResponseUtilities.sendResponsData({
+            code: 200,
+            message: "Success",
+            data: relatedProperties,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getRelatedProperties = getRelatedProperties;
 const updateProperty = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const propertyId = req.params.id;
@@ -188,9 +220,11 @@ const deletePropertyImage = (req, next) => __awaiter(void 0, void 0, void 0, fun
     var _a;
     try {
         const propertyId = req.params.id;
-        const result = yield Property_1.default.findOneAndUpdate({ _id: propertyId }, { $pull: {
+        const result = yield Property_1.default.findOneAndUpdate({ _id: propertyId }, {
+            $pull: {
                 images: req.body.filename
-            } }).exec();
+            }
+        }).exec();
         (0, fs_1.unlink)("./public/uploads/" + ((_a = req.body) === null || _a === void 0 ? void 0 : _a.filename), (error) => {
             if (error) {
                 console.log(`File delete error: ${error.message}`);

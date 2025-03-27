@@ -15,10 +15,10 @@ export const createProperty = async (
     const payload = req.body;
     const property = new Property(payload);
 
-    if(req.files && req.files.length) {
-      let filesData:any = req.files;
-      filesData= filesData.map((file:any) =>file.filename);
-      property.images=filesData;
+    if (req.files && req.files.length) {
+      let filesData: any = req.files;
+      filesData = filesData.map((file: any) => file.filename);
+      property.images = filesData;
     }
     await property.save();
     return ResponseUtilities.sendResponsData({
@@ -65,86 +65,123 @@ export const getAllProperties = async (req: Request, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const searchTerm = (req.query.search as string) || "";
-    const buildingStatus = (req.query.buildingStatus as string) || "";
+    const propertyType = (req.query.propertyType as string) || "";
     const buildings = parseInt(req.query.buildings as string) || 0;
-    const units = parseInt(req.query.units as string) || 0;
     const floors = parseInt(req.query.floors as string) || 0;
+    const metering = (req.query.metering as string) || "";
     const startLandArea = parseInt(req.query.startLandArea as string) || 0;
     const endLandArea = parseInt(req.query.endLandArea as string) || 0;
 
-    // Initialize the searchQuery object
-    let searchQuery: any = {
-      isDeleted: false,
-      $or: [],
-    };
+    const skip = (page - 1) * limit;
 
-    // Add search term filter if provided
+    // Construct the search filter
+    const searchQuery: any = { isDeleted: false };
+
     if (searchTerm) {
-      searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
+      searchQuery.name = { $regex: searchTerm, $options: "i" };
     }
 
-    // Add propertyType filter if provided
-    if (buildingStatus) {
-      searchQuery.buildingStatus = buildingStatus;
+    if (propertyType) {
+      searchQuery.propertyType = propertyType;
     }
 
-    // Add bedrooms filter if provided
     if (buildings > 0) {
-      searchQuery.buildings = buildings;
+      searchQuery.buildings = { $gte: buildings };
     }
 
-    // Add bathrooms filter if provided
-    if (units > 0) {
-      searchQuery.units = units;
+    if (metering) {
+      searchQuery.metering = metering;
     }
 
     if (floors > 0) {
-      searchQuery.floors = floors;
+      searchQuery.floors = { $gte: floors };
     }
-    // Add area range filter if provided
+
     if (startLandArea > 0 || endLandArea > 0) {
       searchQuery.landArea = {};
       if (startLandArea > 0) {
-        searchQuery.landArea.$gte = startLandArea; 
+        searchQuery.landArea.$gte = startLandArea;
       }
       if (endLandArea > 0) {
         searchQuery.landArea.$lte = endLandArea;
       }
     }
 
-    // If no search term or other filters exist, remove $or from searchQuery
-    if (!searchQuery.$or?.length) {
-      delete searchQuery.$or;
-    }
+    // Aggregation pipeline
+    const result = await Property.aggregate([
+      { $match: searchQuery },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }], // Paginated properties
+          totalCount: [{ $count: "count" }], // Total count
+        },
+      },
+    ]);
 
-    // Pagination settings
-    const skip = (page - 1) * limit;
-
-    // Fetch properties based on the searchQuery
-    const properties = await Property.find(searchQuery).sort({createdAt: -1})
-      .skip(skip)
-      .limit(limit);
-
-    // Get total record count for pagination
-    const totalRecords = await Property.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalRecords / limit);
-
-    // Return response with pagination data
+    // Extract paginated data and total count
+    const properties = result[0].data;
+    const totalRecords = result[0].totalCount[0]?.count || 0;
+    // Return response
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
       data: properties,
-      pagination: {
-        totalPages,
-        currentPage: page,
-        limit,
-        totalRecords,
-      },
+      total: totalRecords
     });
   } catch (error) {
     next(error);
   }
 };
+
+export const getRelatedProperties = async (req: Request, next: NextFunction) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 6;
+    const propertyId = req.query.current as string;
+
+    // Fetch the current property
+    const currentProperty = await Property.findById(propertyId);
+    if (!currentProperty) {
+      return ResponseUtilities.sendResponsData({
+        code: 404,
+        message: "Property not found",
+        data: [],
+      });
+    }
+
+    // Construct search filter for related properties
+    const searchQuery: any = {
+      _id: { $ne: propertyId }, // Exclude the current property
+      isDeleted: false, // Only fetch active properties
+      propertyType: currentProperty.propertyType, // Match property type
+    };
+
+    // Optionally match by subType if it exists
+    if (currentProperty.subType) {
+      searchQuery.subType = currentProperty.subType;
+    }
+
+    // Optionally match by investment type
+    if (currentProperty.investmentType) {
+      searchQuery.investmentType = currentProperty.investmentType;
+    }
+
+    // Fetch related properties
+    const relatedProperties = await Property.find(searchQuery)
+      .sort({ createdAt: -1 }) // Get the latest properties
+      .limit(limit);
+
+    // Return response
+    return ResponseUtilities.sendResponsData({
+      code: 200,
+      message: "Success",
+      data: relatedProperties,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 
 export const updateProperty = async (req: Request, next: NextFunction) => {
@@ -153,12 +190,12 @@ export const updateProperty = async (req: Request, next: NextFunction) => {
     let payload = req.body;
 
 
-    if(req.files && req.files.length) {
-      let filesData:any = req.files;
-      filesData= filesData.map((file:any) =>file.filename);
-      payload.images=filesData;
+    if (req.files && req.files.length) {
+      let filesData: any = req.files;
+      filesData = filesData.map((file: any) => file.filename);
+      payload.images = filesData;
     }
-    
+
     const updatedProperty = await Property.findByIdAndUpdate(
       propertyId,
       payload,
@@ -212,12 +249,14 @@ export const deletePropertyImage = async (req: Request, next: NextFunction) => {
     const propertyId = req.params.id;
     const result = await Property.findOneAndUpdate(
       { _id: propertyId },
-      { $pull: {
-        images: req.body.filename
-      } }
+      {
+        $pull: {
+          images: req.body.filename
+        }
+      }
     ).exec();
-    unlink("./public/uploads/"+req.body?.filename,(error)=>{
-      if(error) {
+    unlink("./public/uploads/" + req.body?.filename, (error) => {
+      if (error) {
         console.log(`File delete error: ${error.message}`)
       }
     })

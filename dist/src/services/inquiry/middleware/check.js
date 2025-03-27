@@ -12,9 +12,9 @@ const validateInquiry = (req, res, next) => {
     const schema = joi_1.default.object({
         name: joi_1.default.string().trim().required(),
         email: joi_1.default.string().email().trim().required(),
-        phone: joi_1.default.string().trim().required(),
-        property: joi_1.default.string().required(),
-        query: joi_1.default.string().trim().required(),
+        phone: joi_1.default.string().trim(),
+        property: joi_1.default.string(),
+        query: joi_1.default.string().trim(),
     });
     const { error, value } = schema.validate(req.body, {
         abortEarly: false,

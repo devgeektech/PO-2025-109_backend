@@ -15,17 +15,14 @@ const inquirySchema: Schema = new Schema(
       lowercase: true
     },
     phone:{
-      type: String,
-      required: true,
+      type: String
     },
     property:{
       type: Types.ObjectId,
-      ref: "Property",
-      required: true
+      ref: "Property"
     },
     query: {
-      type: String,
-      required: true, // Query field added, required
+      type: String
     },
   },
   {

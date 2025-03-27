@@ -4,7 +4,7 @@ import {
   validateProperty
 } from "./middleware/check";
 import { checkAuthenticate } from "../../middleware/common.middleware";
-import { createNews, deleteNews, getAllNews, getNewsById, getNewsInsights, updateNews } from "./controller";
+import { createNews, deleteNews, getAllNews, getAllRelatedNews, getNewsById, getNewsInsights, updateNews } from "./controller";
 const basePath = config.BASE_PATH;
 const chatPath= "news/";
 const currentPathURL = basePath + chatPath;
@@ -29,6 +29,17 @@ export default [
       checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getAllNews(req,next);
+        res.status(200).send(result);
+      },
+    ],
+  },
+  {
+    path: currentPathURL+"related",
+    method: "get",
+    handler: [
+      checkAuthenticate,
+      async (req: Request, res: Response, next: NextFunction) => {
+        const result = await getAllRelatedNews(req,next);
         res.status(200).send(result);
       },
     ],

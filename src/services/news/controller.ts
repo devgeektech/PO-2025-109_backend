@@ -99,44 +99,85 @@ export const getAllNews = async (req: Request, next: NextFunction) => {
     const searchTerm = (req.query.search as string) || "";
     const category = (req.query.category as string) || "";
 
-    // Initialize the searchQuery object
-    let searchQuery: any = {
-      isDeleted: false,
-      $or: [],
-    };
+    const skip = (page - 1) * limit;
 
-    // Add search term filter if provided
+    // Construct search filter
+    const searchQuery: any = { isDeleted: false };
+
     if (searchTerm) {
-      searchQuery.$or.push({ title: { $regex: searchTerm, $options: 'i' } });
+      searchQuery.title = { $regex: searchTerm, $options: "i" };
     }
 
-    // Add propertyType filter if provided
     if (category) {
       searchQuery.category = category;
     }
 
-    // If no search term or other filters exist, remove $or from searchQuery
-    if (!searchQuery.$or?.length) {
-      delete searchQuery.$or;
-    }
+    // Aggregation pipeline
+    const result = await News.aggregate([
+      { $match: searchQuery },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }], // Paginated news
+          totalCount: [{ $count: "count" }], // Total count
+        },
+      },
+    ]);
 
-    // Pagination settings
-    const skip = (page - 1) * limit;
+    // Extract data and total count
+    const newsList = result[0].data;
+    const totalRecords = result[0].totalCount[0]?.count || 0;
 
-    // Fetch properties based on the searchQuery
-    const newsList = await News.find(searchQuery).sort({createdAt: -1})
-      .skip(skip)
-      .limit(limit);
-
-    // Get total record count for pagination
-    const totalRecords = await News.countDocuments(searchQuery);
-
-    // Return response with pagination data
+    // Return response
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
       data: newsList,
-      total: totalRecords,
+      total:totalRecords
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllRelatedNews = async (req: Request, next: NextFunction) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 6;
+    const newsId = req.query.current as string;
+
+    // Fetch the current news article
+    const currentNews = await News.findById(newsId);
+
+    if (!currentNews) {
+      return ResponseUtilities.sendResponsData({
+        code: 404,
+        message: "News not found",
+        data: [],
+      });
+    }
+
+    // Construct search filter
+    const searchQuery: any = {
+      _id: { $ne: newsId }, // Exclude current news
+      category: currentNews.category, // Find news in the same category
+      isDeleted: false,
+    };
+
+    // Use text search for similar titles (Ensure text index is created)
+    if (currentNews.title) {
+      searchQuery.title = { $regex: currentNews.title, $options: "i" };
+    }
+
+    // Fetch related news
+    const result = await News.find(searchQuery)
+      .sort({ createdAt: -1 }) // Sort by recent
+      .limit(limit);
+
+    // Return response
+    return ResponseUtilities.sendResponsData({
+      code: 200,
+      message: "Success",
+      data: result,
     });
   } catch (error) {
     next(error);

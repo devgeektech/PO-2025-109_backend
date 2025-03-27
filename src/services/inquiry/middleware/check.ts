@@ -8,9 +8,9 @@ export const validateInquiry = (req: Request, res: Response, next: NextFunction)
   const schema = Joi.object({
     name: Joi.string().trim().required(),
     email: Joi.string().email().trim().required(),
-    phone: Joi.string().trim().required(),
-    property: Joi.string().required(),
-    query: Joi.string().trim().required(),
+    phone: Joi.string().trim(),
+    property: Joi.string(),
+    query: Joi.string().trim(),
   });
 
   const { error, value } = schema.validate(req.body, {

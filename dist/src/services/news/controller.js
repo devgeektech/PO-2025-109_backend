@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteNews = exports.updateNews = exports.getAllNews = exports.getNewsInsights = exports.getNewsById = exports.createNews = void 0;
+exports.deleteNews = exports.updateNews = exports.getAllRelatedNews = exports.getAllNews = exports.getNewsInsights = exports.getNewsById = exports.createNews = void 0;
 const http_errors_1 = require("../../utils/http-errors");
 const response_util_1 = require("../../utils/response.util");
 const messages_1 = require("../../constants/messages");
@@ -96,37 +96,35 @@ const getAllNews = (req, next) => __awaiter(void 0, void 0, void 0, function* ()
         const limit = parseInt(req.query.limit) || 10;
         const searchTerm = req.query.search || "";
         const category = req.query.category || "";
-        // Initialize the searchQuery object
-        let searchQuery = {
-            isDeleted: false,
-            $or: [],
-        };
-        // Add search term filter if provided
+        const skip = (page - 1) * limit;
+        // Construct search filter
+        const searchQuery = { isDeleted: false };
         if (searchTerm) {
-            searchQuery.$or.push({ title: { $regex: searchTerm, $options: 'i' } });
+            searchQuery.title = { $regex: searchTerm, $options: "i" };
         }
-        // Add propertyType filter if provided
         if (category) {
             searchQuery.category = category;
         }
-        // If no search term or other filters exist, remove $or from searchQuery
-        if (!((_a = searchQuery.$or) === null || _a === void 0 ? void 0 : _a.length)) {
-            delete searchQuery.$or;
-        }
-        // Pagination settings
-        const skip = (page - 1) * limit;
-        // Fetch properties based on the searchQuery
-        const newsList = yield News_1.default.find(searchQuery).sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-        // Get total record count for pagination
-        const totalRecords = yield News_1.default.countDocuments(searchQuery);
-        // Return response with pagination data
+        // Aggregation pipeline
+        const result = yield News_1.default.aggregate([
+            { $match: searchQuery },
+            { $sort: { createdAt: -1 } },
+            {
+                $facet: {
+                    data: [{ $skip: skip }, { $limit: limit }], // Paginated news
+                    totalCount: [{ $count: "count" }], // Total count
+                },
+            },
+        ]);
+        // Extract data and total count
+        const newsList = result[0].data;
+        const totalRecords = ((_a = result[0].totalCount[0]) === null || _a === void 0 ? void 0 : _a.count) || 0;
+        // Return response
         return response_util_1.ResponseUtilities.sendResponsData({
             code: 200,
             message: "Success",
             data: newsList,
-            total: totalRecords,
+            total: totalRecords
         });
     }
     catch (error) {
@@ -134,6 +132,45 @@ const getAllNews = (req, next) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getAllNews = getAllNews;
+const getAllRelatedNews = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const limit = parseInt(req.query.limit) || 6;
+        const newsId = req.query.current;
+        // Fetch the current news article
+        const currentNews = yield News_1.default.findById(newsId);
+        if (!currentNews) {
+            return response_util_1.ResponseUtilities.sendResponsData({
+                code: 404,
+                message: "News not found",
+                data: [],
+            });
+        }
+        // Construct search filter
+        const searchQuery = {
+            _id: { $ne: newsId }, // Exclude current news
+            category: currentNews.category, // Find news in the same category
+            isDeleted: false,
+        };
+        // Use text search for similar titles (Ensure text index is created)
+        if (currentNews.title) {
+            searchQuery.title = { $regex: currentNews.title, $options: "i" };
+        }
+        // Fetch related news
+        const result = yield News_1.default.find(searchQuery)
+            .sort({ createdAt: -1 }) // Sort by recent
+            .limit(limit);
+        // Return response
+        return response_util_1.ResponseUtilities.sendResponsData({
+            code: 200,
+            message: "Success",
+            data: result,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getAllRelatedNews = getAllRelatedNews;
 const updateNews = (req, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const propertyId = req.params.id;

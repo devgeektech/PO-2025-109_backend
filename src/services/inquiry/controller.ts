@@ -27,10 +27,10 @@ export const getInquiryById = async (
   next: NextFunction
 ) => {
   try {
-    const propertyId = req.params.id;
-    const property = await Inquiry.findById(propertyId).exec();
+    const inquiryId = req.params.id;
+    const inquiry = await Inquiry.findById(inquiryId).exec();
 
-    if (!property) {
+    if (!inquiry) {
       throw new HTTP400Error(
         ResponseUtilities.sendResponsData({
           code: 400,
@@ -42,7 +42,7 @@ export const getInquiryById = async (
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
-      data: property,
+      data: inquiry,
     });
   } catch (error) {
     next(error);
@@ -55,44 +55,53 @@ export const getAllInquiries = async (req: Request, next: NextFunction) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const searchTerm = (req.query.search as string) || "";
 
-    // Initialize the searchQuery object
-    let searchQuery: any = {
-      $or: [],
-    };
-
-    // Add search term filter if provided
-    if (searchTerm) {
-      searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
-    }
-
-    // If no search term or other filters exist, remove $or from searchQuery
-    if (!searchQuery.$or?.length) {
-      delete searchQuery.$or;
-    }
-
-    // Pagination settings
     const skip = (page - 1) * limit;
 
-    // Fetch properties based on the searchQuery
-    const properties = await Inquiry.find(searchQuery).populate("property","name").sort({createdAt: -1})
-      .skip(skip)
-      .limit(limit);
+    // Construct search filter
+    const searchQuery: any = searchTerm
+      ? { name: { $regex: searchTerm, $options: "i" } }
+      : {};
 
-    // Get total record count for pagination
-    const totalRecords = await Inquiry.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalRecords / limit);
+    // Aggregation pipeline
+    const result = await Inquiry.aggregate([
+      { $match: searchQuery },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "properties", // The collection name for Property
+          localField: "property",
+          foreignField: "_id",
+          as: "propertyData",
+        },
+      },
+      { $unwind: { path: "$propertyData", preserveNullAndEmptyArrays: true } },
+      { 
+        $project: {
+          name: 1,
+          email: 1,
+          phone: 1,
+          query: 1,
+          createdAt: 1,
+          property: { name: "$propertyData.name", _id:"$propertyData._id" }, // Project only needed fields
+        }
+      },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }], // Paginated data
+          totalCount: [{ $count: "count" }], // Total count
+        },
+      },
+    ]);
 
-    // Return response with pagination data
+    // Extract data and total count
+    const properties = result[0].data;
+    const totalRecords = result[0].totalCount[0]?.count || 0;
+    // Return response
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
       data: properties,
-      pagination: {
-        totalPages,
-        currentPage: page,
-        limit,
-        totalRecords,
-      },
+      total:totalRecords,
     });
   } catch (error) {
     next(error);

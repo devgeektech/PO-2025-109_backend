@@ -46,17 +46,14 @@ const inquirySchema = new mongoose_1.Schema({
         lowercase: true
     },
     phone: {
-        type: String,
-        required: true,
+        type: String
     },
     property: {
         type: mongoose_1.Types.ObjectId,
-        ref: "Property",
-        required: true
+        ref: "Property"
     },
     query: {
-        type: String,
-        required: true, // Query field added, required
+        type: String
     },
 }, {
     timestamps: false, // No `createdAt` or `updatedAt` fields added

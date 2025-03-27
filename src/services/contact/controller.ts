@@ -51,40 +51,36 @@ export const getContactById = async (
     next(error);
   }
 };
-
 export const getAllContacts = async (req: Request, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const searchTerm = (req.query.search as string) || "";
 
-    // Initialize the searchQuery object
-    let searchQuery: any = {
-      $or: [],
-    };
-
-    // Add search term filter if provided
-    if (searchTerm) {
-      searchQuery.$or.push({ name: { $regex: searchTerm, $options: 'i' } });
-    }
-
-    // If no search term or other filters exist, remove $or from searchQuery
-    if (!searchQuery.$or?.length) {
-      delete searchQuery.$or;
-    }
-
-    // Pagination settings
     const skip = (page - 1) * limit;
 
-    // Fetch properties based on the searchQuery
-    const properties = await Contact.find(searchQuery).sort({createdAt: -1})
-      .skip(skip)
-      .limit(limit);
+    // Construct search filter
+    const searchQuery: any = searchTerm
+      ? { name: { $regex: searchTerm, $options: "i" } }
+      : {};
 
-    // Get total record count for pagination
-    const totalRecords = await Contact.countDocuments(searchQuery);
+    // Aggregate pipeline to get paginated results and total count
+    const result = await Contact.aggregate([
+      { $match: searchQuery },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }], // Paginated data
+          totalCount: [{ $count: "count" }], // Total count
+        },
+      },
+    ]);
 
-    // Return response with pagination data
+    // Extract data and total count
+    const properties = result[0].data;
+    const totalRecords = result[0].totalCount[0]?.count || 0;
+
+    // Return response
     return ResponseUtilities.sendResponsData({
       code: 200,
       message: "Success",
@@ -95,6 +91,7 @@ export const getAllContacts = async (req: Request, next: NextFunction) => {
     next(error);
   }
 };
+
 
 
 export const updateContact = async (req: Request, next: NextFunction) => {
