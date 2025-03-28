@@ -15,6 +15,7 @@ const validateInquiry = (req, res, next) => {
         phone: joi_1.default.string().trim(),
         property: joi_1.default.string(),
         query: joi_1.default.string().trim(),
+        isOnMarket: joi_1.default.bool()
     });
     const { error, value } = schema.validate(req.body, {
         abortEarly: false,

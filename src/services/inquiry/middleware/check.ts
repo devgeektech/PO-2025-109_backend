@@ -11,6 +11,7 @@ export const validateInquiry = (req: Request, res: Response, next: NextFunction)
     phone: Joi.string().trim(),
     property: Joi.string(),
     query: Joi.string().trim(),
+    isOnMarket: Joi.bool()
   });
 
   const { error, value } = schema.validate(req.body, {

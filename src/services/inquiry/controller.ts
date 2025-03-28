@@ -81,6 +81,7 @@ export const getAllInquiries = async (req: Request, next: NextFunction) => {
           email: 1,
           phone: 1,
           query: 1,
+          isOnMarket:1,
           createdAt: 1,
           property: { name: "$propertyData.name", _id:"$propertyData._id" }, // Project only needed fields
         }

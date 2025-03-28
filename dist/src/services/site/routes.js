@@ -33,7 +33,6 @@ exports.default = [
         path: currentPathURL,
         method: "get",
         handler: [
-            common_middleware_1.checkAuthenticate,
             (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
                 const result = yield (0, controller_1.getSiteDetail)(req, res, next);
                 res.status(200).send(result);

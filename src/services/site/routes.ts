@@ -24,7 +24,6 @@ export default [
     path: currentPathURL,
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getSiteDetail(req,res,next);
         res.status(200).send(result);

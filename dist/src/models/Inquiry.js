@@ -55,6 +55,10 @@ const inquirySchema = new mongoose_1.Schema({
     query: {
         type: String
     },
+    isOnMarket: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: false, // No `createdAt` or `updatedAt` fields added
 });

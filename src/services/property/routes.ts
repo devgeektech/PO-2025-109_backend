@@ -26,7 +26,6 @@ export default [
     path: currentPathURL,
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getAllProperties(req,next);
         res.status(200).send(result);
@@ -37,7 +36,6 @@ export default [
     path: currentPathURL+ "related",
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getRelatedProperties(req,next);
         res.status(200).send(result);

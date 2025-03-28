@@ -26,7 +26,6 @@ export default [
     path: currentPathURL,
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getAllNews(req,next);
         res.status(200).send(result);
@@ -37,7 +36,6 @@ export default [
     path: currentPathURL+"related",
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getAllRelatedNews(req,next);
         res.status(200).send(result);
@@ -59,7 +57,6 @@ export default [
     path: currentPathURL+":id",
     method: "get",
     handler: [
-      checkAuthenticate,
       async (req: Request, res: Response, next: NextFunction) => {
         const result = await getNewsById(req,next);
         res.status(200).send(result);

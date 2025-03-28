@@ -24,6 +24,10 @@ const inquirySchema: Schema = new Schema(
     query: {
       type: String
     },
+    isOnMarket:{
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: false, // No `createdAt` or `updatedAt` fields added
