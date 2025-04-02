@@ -11,8 +11,8 @@ export class ResponseUtilities {
         if (response.data) {
             result.data = response.data;
         }
-        if (response.totalRecord) {
-            result.totalRecord = response.totalRecord;
+        if (response.total) {
+            result.total = response.total;
         }
         if (response.otp) {
             result.otp = response.otp

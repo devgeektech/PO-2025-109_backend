@@ -75,7 +75,6 @@ export const getAllContacts = async (req: Request, next: NextFunction) => {
         },
       },
     ]);
-
     // Extract data and total count
     const properties = result[0].data;
     const totalRecords = result[0].totalCount[0]?.count || 0;

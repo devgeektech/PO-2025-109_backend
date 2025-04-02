@@ -16,7 +16,7 @@ const propertySchema = new Schema<IProperty>(
     },
     buildings:{
       type:Number,
-      default: 0
+      default: 1
     },
     units:{
       type:Number,
@@ -28,7 +28,7 @@ const propertySchema = new Schema<IProperty>(
     },
     floors:{
       type:Number,
-      default: 0
+      default: 1
     },
     occupancy:{
       type:Number,

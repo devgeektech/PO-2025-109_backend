@@ -14,8 +14,7 @@ const siteSchema: Schema = new Schema(
           trim: true
         },
         avatar: {
-          type: String,
-          required: true
+          type: String
         },
         code: {
           type: String,

@@ -48,7 +48,7 @@ const propertySchema = new mongoose_1.Schema({
     },
     buildings: {
         type: Number,
-        default: 0
+        default: 1
     },
     units: {
         type: Number,
@@ -60,7 +60,7 @@ const propertySchema = new mongoose_1.Schema({
     },
     floors: {
         type: Number,
-        default: 0
+        default: 1
     },
     occupancy: {
         type: Number,
