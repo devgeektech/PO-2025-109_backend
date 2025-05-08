@@ -1,0 +1,51 @@
+import { Document } from "mongoose";
+
+// The IChatRoom interface extends Document to include Mongoose document properties
+export interface IProperty extends Document  {
+    name: string;
+    buildingStatus: "existing" | "completed";
+    buildings?: number;
+    units?: number;
+    gba: string;
+    floors?: number;
+    occupancy?: number;
+    showOnLoopNet?: boolean;
+    yearBuilt?: number;
+    yearRenovated?: number;
+    metering?: "individual" | "master";
+    construction?: string;
+    elevators?: number;
+    elevatorWalkUp?: boolean;
+    parking?: string;
+    landArea?: number;
+    landAreaUnit?: string;
+    zoning?: string;
+    zoningDescription?: string;
+    images?: string[];
+    videos?: string[];
+    permittedZoning?: string;
+    brokerCoOp?: boolean;
+    askingPrice?: number;
+    propertyType: string;
+    subType?: string;
+    investmentType: string;
+    investmentSubType?: string;
+    squareFootage?: number;
+    pricePerSquareFoot?: number;
+    capRate?: number;
+    proformaCapRate?: number;
+    noi?: number;
+    proformaNOI?: number;
+    keys?: number;
+    stories?: number;
+    lotSizeAcres?: number;
+    parkingPerKey?: number;
+    apn?: string;
+    pricePerKey?: number;
+    groundLease?: boolean;
+    ownership?: string;
+    saleCondition?: string;
+    isDeleted?: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
