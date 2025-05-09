@@ -21,7 +21,6 @@ const fs_1 = require("fs");
 const createProperty = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        console.log(req.body);
         const payload = req.body;
         const property = new Property_1.default(payload);
         if (req.files && req.files.length) {
@@ -184,10 +183,22 @@ const updateProperty = (req, next) => __awaiter(void 0, void 0, void 0, function
     try {
         const propertyId = req.params.id;
         let payload = req.body;
+        // Fetch existing property to preserve old media
+        const existingProperty = yield Property_1.default.findById(propertyId).exec();
+        if (!existingProperty) {
+            throw new http_errors_1.HTTP400Error(response_util_1.ResponseUtilities.sendResponsData({
+                code: 400,
+                message: messages_1.MESSAGES.PROPERTY_ERRORS.PROPERTY_NOT_EXIST,
+            }));
+        }
+        // Initialize arrays if not present in payload
+        payload.images = existingProperty.images || [];
+        payload.videos = existingProperty.videos || [];
         if (req.files && req.files.length) {
             let filesData = req.files;
             for (const file of filesData) {
-                if ((file === null || file === void 0 ? void 0 : file.fieldname) == 'images') {
+                const mType = file === null || file === void 0 ? void 0 : file.mimetype.split('/')[0];
+                if (mType == 'image') {
                     (_a = payload.images) === null || _a === void 0 ? void 0 : _a.push(file === null || file === void 0 ? void 0 : file.filename);
                 }
                 else {
@@ -195,7 +206,8 @@ const updateProperty = (req, next) => __awaiter(void 0, void 0, void 0, function
                 }
             }
         }
-        const updatedProperty = yield Property_1.default.findByIdAndUpdate(propertyId, payload, { new: true } // Return the updated document
+        console.log(payload);
+        const updatedProperty = yield Property_1.default.findOneAndUpdate({ _id: propertyId }, { $set: payload }, { new: true } // Return the updated document
         ).exec();
         if (!updatedProperty) {
             throw new http_errors_1.HTTP400Error(response_util_1.ResponseUtilities.sendResponsData({
@@ -237,7 +249,8 @@ const deletePropertyImage = (req, next) => __awaiter(void 0, void 0, void 0, fun
         const propertyId = req.params.id;
         const result = yield Property_1.default.findOneAndUpdate({ _id: propertyId }, {
             $pull: {
-                images: req.body.filename
+                images: req.body.filename,
+                videos: req.body.filename
             }
         }).exec();
         (0, fs_1.unlink)("./public/uploads/" + ((_a = req.body) === null || _a === void 0 ? void 0 : _a.filename), (error) => {

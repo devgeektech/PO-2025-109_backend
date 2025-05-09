@@ -11,14 +11,13 @@ export const createProperty = async (
   next: NextFunction
 ) => {
   try {
-    console.log(req.body)
     const payload = req.body;
     const property = new Property(payload);
 
     if (req.files && req.files.length) {
       let filesData: any = req.files;
       for (const file of filesData) {
-        const mType= file?.mimetype.split('/')[0];
+        const mType = file?.mimetype.split('/')[0];
         if (mType == 'image') {
           property.images?.push(file?.filename);
         } else {
@@ -195,12 +194,26 @@ export const updateProperty = async (req: Request, next: NextFunction) => {
     const propertyId = req.params.id;
     let payload = req.body;
 
+    // Fetch existing property to preserve old media
+    const existingProperty = await Property.findById(propertyId).exec();
+    if (!existingProperty) {
+      throw new HTTP400Error(
+        ResponseUtilities.sendResponsData({
+          code: 400,
+          message: MESSAGES.PROPERTY_ERRORS.PROPERTY_NOT_EXIST,
+        })
+      );
+    }
+
+    // Initialize arrays if not present in payload
+    payload.images = existingProperty.images || [];
+    payload.videos = existingProperty.videos || [];
 
     if (req.files && req.files.length) {
       let filesData: any = req.files;
-
       for (const file of filesData) {
-        if (file?.fieldname == 'images') {
+        const mType = file?.mimetype.split('/')[0];
+        if (mType == 'image') {
           payload.images?.push(file?.filename);
         } else {
           payload.videos?.push(file?.filename);
@@ -209,9 +222,11 @@ export const updateProperty = async (req: Request, next: NextFunction) => {
 
     }
 
-    const updatedProperty = await Property.findByIdAndUpdate(
-      propertyId,
-      payload,
+    console.log(payload)
+
+    const updatedProperty = await Property.findOneAndUpdate(
+      { _id: propertyId },
+      { $set: payload },
       { new: true } // Return the updated document
     ).exec();
 
@@ -264,7 +279,8 @@ export const deletePropertyImage = async (req: Request, next: NextFunction) => {
       { _id: propertyId },
       {
         $pull: {
-          images: req.body.filename
+          images: req.body.filename,
+          videos: req.body.filename
         }
       }
     ).exec();
